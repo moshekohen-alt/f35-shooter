@@ -361,6 +361,8 @@ const API_URL=(location.protocol==='https:'?'https':'http')+'://adorable-gratitu
 // ══════════════════════════════════════════════
 let currentUser=null; // {name, pass, coins, ownedPlanes, ownedWeapons, selectedPlane, selectedWeapon, stage}
 let ws=null, myPlayerId=null, myRoom=null, multiMode=false;
+let myColor='#00ffff';       // my plane outline color (set when room is created/joined)
+let myName='';               // my display name in the room
 let isHost=false;            // true if I created the room (authoritative simulator)
 let lastSnapshotFrame=0;     // host: last frame we broadcast a snapshot
 let snapshotIntervalFrames=10; // host: every ~6Hz @ 60fps
@@ -899,6 +901,47 @@ function drawPlane(x,y,pl,color,tf){
     ctx.beginPath();ctx.arc(0,0,30,0,Math.PI*2);ctx.stroke();
   }
   ctx.restore();
+}
+
+// Draw a player with a colored identity ring + small name tag — used in multiplayer
+// so each player knows which plane is theirs and who's who.
+function drawPlayerWithRing(x,y,pl,tf,ringColor,name){
+  const blink=pl.iframes>0&&Math.floor(frame/3)%2===0;
+  if(blink)return;
+  // Pulsing ring around the plane
+  ctx.save();
+  ctx.translate(x,y);
+  const pulse=0.85+0.15*Math.sin(frame*0.15);
+  const r=28*pulse;
+  // Glow underneath (semi-transparent)
+  ctx.strokeStyle=ringColor+'60';
+  ctx.lineWidth=4;
+  ctx.beginPath();ctx.arc(0,0,r+2,0,Math.PI*2);ctx.stroke();
+  // Solid ring on top
+  ctx.strokeStyle=ringColor;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+  // Plane itself (use the normal plane drawing, with default cyan body color)
+  drawPlane(x,y,pl,'#00ffff',tf);
+  // Name tag above the plane
+  if(name){
+    ctx.save();
+    ctx.font='bold 10px system-ui,sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    const text=name.length>10?name.slice(0,10):name;
+    const padX=4, h=14;
+    const w=ctx.measureText(text).width+padX*2;
+    const tagY=y-38;
+    // Tag background (matches ring color, slightly darker)
+    ctx.fillStyle=ringColor+'cc';
+    ctx.fillRect(x-w/2,tagY-h/2,w,h);
+    // White text on top for contrast
+    ctx.fillStyle='#000';
+    ctx.fillText(text,x,tagY+0.5);
+    ctx.restore();
+  }
 }
 
 function drawEnemy(e){
@@ -3034,13 +3077,18 @@ function draw(){
   });
   particles.forEach(p=>{ctx.save();ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();});
   drawBoss(boss);
-  drawPlane(player.x,player.y,player,'#00ffff',player.tf);
+  // Local player: in MP, show my color ring + name tag too. In solo, just the plane.
+  if(multiMode){
+    drawPlayerWithRing(player.x,player.y,player,player.tf,myColor,myName);
+  } else {
+    drawPlane(player.x,player.y,player,'#00ffff',player.tf);
+  }
   // Remote players
   if(multiMode){
     Object.values(remotePlayers).forEach(rp=>{
       if(!rp.alive)return;
       const fakePl={iframes:rp.iframes||0,alive:true,shielded:false};
-      drawPlane(rp.x||0,rp.y||0,fakePl,'#f472b6',frame);
+      drawPlayerWithRing(rp.x||0,rp.y||0,fakePl,frame,rp.color||'#f472b6',rp.name||'');
     });
   }
   // Score
@@ -3691,26 +3739,65 @@ function connectWS(onOpen){
         case 'created':
           myPlayerId=msg.playerId;myRoom=msg.code;multiMode=true;
           isHost=true; // I created the room — I'm the simulation authority
+          myColor=MP_COLORS[(myPlayerId-1)%MP_COLORS.length];
+          myName=currentUser.name;
+          // Tell the room my real color (initial create used a placeholder)
+          ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
           document.getElementById('room-code-display').style.display='block';
           document.getElementById('room-code-val').textContent=msg.code;
           setMultiErr('');break;
         case 'joined':
           myPlayerId=msg.playerId;myRoom=msg.code;multiMode=true;
           isHost=false; // I'm a guest — host runs the simulation
+          myColor=MP_COLORS[(myPlayerId-1)%MP_COLORS.length];
+          myName=currentUser.name;
+          ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
           setMultiErr('Joined! Wait for host...');break;
-        case 'players':
+        case 'players': {
           document.getElementById('room-players').textContent=msg.players.length+' player(s) in room';
-          remotePlayers={};
-          msg.players.forEach(p=>{if(p.id!==myPlayerId)remotePlayers[p.id]={...p,x:0,y:0,alive:true};});
+          // Update existing remotePlayers in place so we don't lose color/name data
+          // already received via identify events. Also fall back to the deterministic
+          // playerId→color mapping for anyone who hasn't identified yet.
+          const seenIds=new Set();
+          msg.players.forEach(p=>{
+            if(p.id===myPlayerId)return;
+            seenIds.add(p.id);
+            if(!remotePlayers[p.id]){
+              remotePlayers[p.id]={id:p.id,x:0,y:0,alive:true};
+            }
+            remotePlayers[p.id].color=remotePlayers[p.id].color||p.color||MP_COLORS[(p.id-1)%MP_COLORS.length];
+            remotePlayers[p.id].name=remotePlayers[p.id].name||p.name||('Pilot '+p.id);
+          });
+          // Drop any remotePlayers no longer in the room
+          Object.keys(remotePlayers).forEach(id=>{if(!seenIds.has(+id))delete remotePlayers[id];});
           break;
+        }
         case 'start':
-          remotePlayers={};
-          msg.players.forEach(p=>{if(p.id!==myPlayerId)remotePlayers[p.id]={id:p.id,x:0,y:0,alive:true,hp:3,iframes:0};});
+          // Preserve existing remotePlayers (with their color/name) across game start
+          msg.players.forEach(p=>{
+            if(p.id===myPlayerId)return;
+            if(!remotePlayers[p.id]){
+              remotePlayers[p.id]={id:p.id,color:MP_COLORS[(p.id-1)%MP_COLORS.length],name:'Pilot '+p.id};
+            }
+            Object.assign(remotePlayers[p.id],{x:0,y:0,alive:true,hp:3,iframes:0});
+          });
           currentStage=1;multiMode=true;
           showScreen(null);gameState='playing';initGame();break;
         case 'state':
           if(remotePlayers[msg.playerId])Object.assign(remotePlayers[msg.playerId],msg.data);break;
         case 'event':
+          if(msg.event==='identify'){
+            // Another player just told us their color and name
+            if(msg.playerId&&msg.playerId!==myPlayerId){
+              if(!remotePlayers[msg.playerId])remotePlayers[msg.playerId]={id:msg.playerId,x:0,y:0,alive:true};
+              if(msg.data?.color)remotePlayers[msg.playerId].color=msg.data.color;
+              if(msg.data?.name)remotePlayers[msg.playerId].name=msg.data.name;
+            }
+            // Also: when a new player joins after us, re-identify so they hear our info
+            if(ws&&ws.readyState===1&&myColor){
+              ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
+            }
+          }
           if(msg.event==='ready'){
             readyPlayers.add(msg.playerId);
             updateReadyList();
