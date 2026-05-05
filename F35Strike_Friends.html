@@ -361,6 +361,13 @@ const API_URL=(location.protocol==='https:'?'https':'http')+'://adorable-gratitu
 // PLAYER DATA
 // ══════════════════════════════════════════════
 let currentUser=null; // {name, pass, coins, ownedPlanes, ownedWeapons, selectedPlane, selectedWeapon, stage}
+// ── Multiplayer diagnostics ──
+// Lightweight counters to help debug when snapshots don't arrive (the most common
+// reason joiners "see no enemies"). Toggle showMpDebug() in the dev console to
+// flash the numbers on screen.
+let _mpStats={snapsSent:0,snapsRecv:0,lastSnapAt:0,evtsSent:0,evtsRecv:0};
+let _showMpDebug=false;
+function showMpDebug(on){_showMpDebug=on!==false;}
 let ws=null, myPlayerId=null, myRoom=null, multiMode=false;
 let myColor='#00ffff';       // my plane outline color (set when room is created/joined)
 let myName='';               // my display name in the room
@@ -2949,6 +2956,7 @@ function update(){
         frozen:frame<frozenUntil?1:0
       }
     }));
+    _mpStats.snapsSent++;
   }
 
   updateHUD();
@@ -3247,6 +3255,37 @@ function draw(){
   // Score
   ctx.fillStyle='rgba(0,0,0,0.45)';ctx.font='bold 13px Orbitron,sans-serif';ctx.textAlign='left';
   ctx.fillText(currentUser?.name||'',10,H()-8);
+  // ── MP debug overlay ──
+  // Auto-show if joiner has been getting no snapshots, OR manually toggled.
+  // Helps diagnose the "no enemies on player 2" class of issues.
+  if(multiMode){
+    const since=_mpStats.lastSnapAt?Date.now()-_mpStats.lastSnapAt:Infinity;
+    const stuck = !isHost && (since>2000 || enemies.length===0);
+    if(_showMpDebug || stuck){
+      ctx.save();
+      ctx.font='bold 10px monospace';
+      ctx.textAlign='right';
+      ctx.textBaseline='top';
+      const lines=[
+        (isHost?'HOST':'JOIN')+' id='+myPlayerId,
+        'enemies='+enemies.length,
+        'snapRX='+_mpStats.snapsRecv+' TX='+_mpStats.snapsSent,
+        'lastSnap='+(since===Infinity?'never':Math.round(since)+'ms ago'),
+        'ws='+(ws?ws.readyState:'null')+(stuck?' STUCK':'')
+      ];
+      const x=W()-8;
+      let y=80;
+      lines.forEach(line=>{
+        const w=ctx.measureText(line).width+8;
+        ctx.fillStyle=stuck?'rgba(120,0,0,0.85)':'rgba(0,0,0,0.7)';
+        ctx.fillRect(x-w,y,w,13);
+        ctx.fillStyle='#ffd700';
+        ctx.fillText(line,x-4,y+1);
+        y+=14;
+      });
+      ctx.restore();
+    }
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -4043,7 +4082,11 @@ function connectWS(onOpen){
               showScreen('stage-end-screen');
             }
           }
-          if(msg.event==='snap'&&!isHost) applySnapshot(msg.data);
+          if(msg.event==='snap'&&!isHost){
+            _mpStats.snapsRecv++;
+            _mpStats.lastSnapAt=Date.now();
+            applySnapshot(msg.data);
+          }
           if(msg.event==='hit'&&isHost) applyJoinerHit(msg.playerId,msg.data);
           if(msg.event==='revive'){
             // Someone used a heart to revive a dead player.
