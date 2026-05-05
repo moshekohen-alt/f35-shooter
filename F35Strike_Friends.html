@@ -906,8 +906,44 @@ function drawPlane(x,y,pl,color,tf){
   ctx.restore();
 }
 
-// Draw a player with a colored identity ring + small name tag — used in multiplayer
-// so each player knows which plane is theirs and who's who.
+// Draw a player who's been knocked out — floating skull marker + faded plane
+// outline + a "needs revive" hint above. Drifts down slowly.
+function drawDeadPlayer(x,y,color,name,hint){
+  ctx.save();
+  ctx.globalAlpha=0.6;
+  // Faded plane silhouette
+  ctx.translate(x,y);
+  const planeId=currentUser?currentUser.selectedPlane:'f16';
+  const planeIdx=['f16','fa18','f22','f35','sr72'].indexOf(planeId);
+  ctx.scale(0.9,0.9);
+  ctx.globalAlpha=0.3;
+  drawPlaneShape(ctx,Math.max(0,planeIdx),'#888',frame);
+  ctx.globalAlpha=1;
+  ctx.scale(1/0.9,1/0.9);
+  // Pulsing red ring for "down"
+  const pulse=0.7+0.3*Math.sin(frame*0.18);
+  ctx.strokeStyle='rgba(255,80,80,'+(0.4*pulse)+')';
+  ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(0,0,30*pulse,0,Math.PI*2);ctx.stroke();
+  // Skull above
+  ctx.font='20px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('💀',0,-26);
+  ctx.restore();
+  // Name + hint tag
+  ctx.save();
+  ctx.font='bold 9px system-ui,sans-serif';ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  const text=(name?name+' ':'')+hint;
+  const w=ctx.measureText(text).width+8;
+  const tagY=y+34;
+  ctx.fillStyle='rgba(255,80,80,0.85)';
+  ctx.fillRect(x-w/2,tagY-7,w,14);
+  ctx.fillStyle='#fff';
+  ctx.fillText(text,x,tagY+0.5);
+  ctx.restore();
+}
+
+
 function drawPlayerWithRing(x,y,pl,tf,ringColor,name){
   const blink=pl.iframes>0&&Math.floor(frame/3)%2===0;
   if(blink)return;
@@ -2287,16 +2323,18 @@ function update(){
     if(nowSec!==prevSec||bombCooldownT===0)updateBombHud();
   }
 
-  // Move player
+  // Move player (skip controls for dead players in MP — they "ghost" until revived)
   player.tf++;
-  let pvx=0,pvy=0;
-  if(keys['ArrowUp']||keys['w']||keys['W']||keys['KeyW'])pvy=-spd;
-  if(keys['ArrowDown']||keys['s']||keys['S']||keys['KeyS'])pvy=spd;
-  if(keys['ArrowLeft']||keys['a']||keys['A']||keys['KeyA'])pvx=-spd;
-  if(keys['ArrowRight']||keys['d']||keys['D']||keys['KeyD'])pvx=spd;
-  if(joyActive1){pvx=joyDx1*spd;pvy=joyDy1*spd;}
-  player.x=Math.max(18,Math.min(W()-18,player.x+pvx));
-  player.y=Math.max(18,Math.min(H()-18,player.y+pvy));
+  if(player.alive){
+    let pvx=0,pvy=0;
+    if(keys['ArrowUp']||keys['w']||keys['W']||keys['KeyW'])pvy=-spd;
+    if(keys['ArrowDown']||keys['s']||keys['S']||keys['KeyS'])pvy=spd;
+    if(keys['ArrowLeft']||keys['a']||keys['A']||keys['KeyA'])pvx=-spd;
+    if(keys['ArrowRight']||keys['d']||keys['D']||keys['KeyD'])pvx=spd;
+    if(joyActive1){pvx=joyDx1*spd;pvy=joyDy1*spd;}
+    player.x=Math.max(18,Math.min(W()-18,player.x+pvx));
+    player.y=Math.max(18,Math.min(H()-18,player.y+pvy));
+  }
   if(player.iframes>0)player.iframes--;
   if(player.shielded){player.shieldTimer--;if(player.shieldTimer<=0){player.shielded=false;player.mirrorActive=false;}}
 
@@ -2774,15 +2812,49 @@ function update(){
           spawnP(m.x,m.y,'#cc44ff',3,2);
           return true;
         }
+        // Joiner in MP: forward the hit to the host so authoritative damage applies.
+        if(multiMode&&!isHost&&typeof e.id==='number'&&ws&&ws.readyState===1){
+          ws.send(JSON.stringify({type:'event',event:'hit',data:{eid:e.id,dmg:m.dmg}}));
+        }
         e.hp-=m.dmg;
-        if(m.type==='cluster'){spawnP(e.x,e.y,'#fb923c',10,4);if(e.hp<=0){killEnemy(e);return false;}return true;}
-        spawnP(e.x,e.y,'#fde68a',16,6);killEnemy(e);hit=true;return false;
+        if(m.type==='cluster'){
+          spawnP(e.x,e.y,'#fb923c',10,4);
+          if(e.hp<=0){
+            if(imSimulating())killEnemy(e);
+            else {
+              // Joiner: credit my own wallet for the kill
+              spawnP(e.x,e.y,'#fde68a',12,5);
+              let coins;
+              if(currentStage<=3)coins=Math.floor(Math.random()*3)+1;
+              else if(currentStage<=6)coins=Math.floor(Math.random()*5)+3;
+              else coins=Math.floor(Math.random()*6)+5;
+              earnCoins(coins);
+            }
+            return false;
+          }
+          return true;
+        }
+        spawnP(e.x,e.y,'#fde68a',16,6);
+        if(imSimulating())killEnemy(e);
+        else {
+          // Joiner: credit my own wallet
+          let coins;
+          if(currentStage<=3)coins=Math.floor(Math.random()*3)+1;
+          else if(currentStage<=6)coins=Math.floor(Math.random()*5)+3;
+          else coins=Math.floor(Math.random()*6)+5;
+          earnCoins(coins);
+        }
+        hit=true;return false;
       }
       return true;
     });
     if(!hit&&boss&&boss.active&&Math.abs(m.x-boss.x)<boss.size+20&&Math.abs(m.y-boss.y)<boss.size*0.6+20){
+      // Joiner forwards boss hits to host as well
+      if(multiMode&&!isHost&&ws&&ws.readyState===1){
+        ws.send(JSON.stringify({type:'event',event:'hit',data:{target:'boss',eid:-1,dmg:m.dmg*3}}));
+      }
       boss.hp-=m.dmg*3;spawnP(boss.x,boss.y,'#fde68a',16,6);hit=true;
-      if(boss.hp<=0)killBoss();
+      if(boss.hp<=0&&imSimulating())killBoss();
     }
     if(m.type==='chain'&&hit&&m.chains>0){
       const next=enemies[0];
@@ -2792,8 +2864,8 @@ function update(){
     return !hit;
   });
 
-  // Enemy bullets vs player — uses plane's hitRadius
-  if(player.iframes===0){
+  // Enemy bullets vs player — uses plane's hitRadius; skip if dead (waiting for revive)
+  if(player.alive&&player.iframes===0){
     const hr=getPlane().hitRadius||24;
     const hrX=Math.round(hr*0.83), hrY=Math.round(hr*0.67); // bullets use ellipse
     bullets=bullets.filter(b=>{
@@ -2816,15 +2888,16 @@ function update(){
     if(boss&&boss.active&&player.iframes===0&&Math.abs(boss.x-player.x)<boss.size&&Math.abs(boss.y-player.y)<boss.size*0.6)hitPlayer(2);
   }
 
-  // Collect coins
+  // Collect coins (alive players only)
   coins_items=coins_items.filter(c=>{
-    if(Math.abs(c.x-player.x)<22&&Math.abs(c.y-player.y)<22){earnCoins(1);spawnP(c.x,c.y,'#fbbf24',6,3);return false;}
+    if(player.alive&&Math.abs(c.x-player.x)<22&&Math.abs(c.y-player.y)<22){earnCoins(1);spawnP(c.x,c.y,'#fbbf24',6,3);return false;}
     return c.x>-20;
   });
-  // Collect hearts
+  // Collect hearts — supports MP revive
   hearts=hearts.filter(h=>{
-    if(Math.abs(h.x-player.x)<22&&Math.abs(h.y-player.y)<22){
-      player.hp=Math.min(player.maxHp,player.hp+1);updateHUD();spawnP(h.x,h.y,'#f472b6',8,3);return false;
+    if(player.alive&&Math.abs(h.x-player.x)<22&&Math.abs(h.y-player.y)<22){
+      consumeHeart(h.x,h.y);
+      return false;
     }
     return h.x>-20;
   });
@@ -2886,7 +2959,69 @@ function hitPlayer(dmg){
   player.hp-=dmg;player.iframes=90;
   spawnP(player.x,player.y,'#60a5fa',10,3);
   updateHUD();
-  if(player.hp<=0){player.alive=false;gameOver();}
+  if(player.hp<=0){
+    player.alive=false;
+    player.hp=0;
+    if(multiMode){
+      // MP: don't end the game — float as a "ghost" until a teammate revives me.
+      // Only when ALL players in the room are dead does it become a wipe.
+      checkMpWipe();
+    } else {
+      gameOver();
+    }
+  }
+}
+
+// Returns true if every player in the MP room (me + remotes) is dead.
+function checkMpWipe(){
+  if(!multiMode)return false;
+  if(player.alive)return false;
+  const remotesAlive=Object.values(remotePlayers).some(rp=>rp.alive);
+  if(!remotesAlive){
+    // All down — actual wipe.
+    gameOver();
+    return true;
+  }
+  return false;
+}
+
+// Heart pickup logic: prefer revive over heal. Returns true if the heart was used.
+//  - If a dead teammate exists in MP, send a revive event to the room and consume the heart.
+//  - Else if I'm not at full HP, heal me locally.
+//  - Else (everyone full HP, no one dead): small coin bonus instead of wasting the heart.
+function consumeHeart(hx,hy){
+  // 1. Look for a dead teammate to revive (MP only)
+  if(multiMode){
+    const deadTeammate=Object.values(remotePlayers).find(rp=>!rp.alive);
+    if(deadTeammate){
+      // Tell the room: this dead player should respawn at my location
+      if(ws&&ws.readyState===1){
+        ws.send(JSON.stringify({type:'event',event:'revive',data:{targetId:deadTeammate.id,x:player.x,y:player.y+30}}));
+      }
+      // Locally mark them alive so our render reflects it instantly
+      deadTeammate.alive=true;
+      deadTeammate.hp=3;
+      spawnP(hx,hy,'#f472b6',16,5);
+      spawnP(hx,hy,'#ffffff',12,4);
+      // Heart consumed — show "REVIVE" feedback
+      const m=document.createElement('div');
+      m.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(244,114,182,0.2);border:2px solid #f472b6;color:#f472b6;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;padding:8px 18px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;';
+      m.innerHTML='💖 TEAMMATE REVIVED';
+      document.body.appendChild(m);setTimeout(()=>m.remove(),1500);
+      return true;
+    }
+  }
+  // 2. Heal me if not full
+  if(player.hp<player.maxHp){
+    player.hp=Math.min(player.maxHp,player.hp+1);
+    updateHUD();
+    spawnP(hx,hy,'#f472b6',8,3);
+    return true;
+  }
+  // 3. Full HP, nobody to revive — small consolation bonus
+  earnCoins(5);
+  spawnP(hx,hy,'#fbbf24',10,4);
+  return true;
 }
 
 function spawnEnemy(st){
@@ -3090,16 +3225,23 @@ function draw(){
   drawBoss(boss);
   // Local player: in MP, show my color ring + name tag too. In solo, just the plane.
   if(multiMode){
-    drawPlayerWithRing(player.x,player.y,player,player.tf,myColor,myName);
+    if(player.alive){
+      drawPlayerWithRing(player.x,player.y,player,player.tf,myColor,myName);
+    } else {
+      drawDeadPlayer(player.x,player.y,myColor,myName,'YOU — wait for revive');
+    }
   } else {
     drawPlane(player.x,player.y,player,'#00ffff',player.tf);
   }
-  // Remote players
+  // Remote players (alive get full plane, dead get ghost marker)
   if(multiMode){
     Object.values(remotePlayers).forEach(rp=>{
-      if(!rp.alive)return;
-      const fakePl={iframes:rp.iframes||0,alive:true,shielded:false};
-      drawPlayerWithRing(rp.x||0,rp.y||0,fakePl,frame,rp.color||'#f472b6',rp.name||'');
+      if(rp.alive){
+        const fakePl={iframes:rp.iframes||0,alive:true,shielded:false};
+        drawPlayerWithRing(rp.x||0,rp.y||0,fakePl,frame,rp.color||'#f472b6',rp.name||'');
+      } else {
+        drawDeadPlayer(rp.x||W()/2,rp.y||H()/2,rp.color||'#f472b6',rp.name||'','needs revive!');
+      }
     });
   }
   // Score
@@ -3732,6 +3874,18 @@ function applySnapshot(d){
     nextList.push(e);
   });
   enemies=nextList;
+  // Re-resolve homing missiles' target references — after replacing the enemies
+  // array, any m.target pointers from before are stale (point to the old objects).
+  // Reattach them by id if possible so homing keeps working.
+  if(typeof pMissiles!=='undefined'&&pMissiles){
+    pMissiles.forEach(m=>{
+      if(m&&m.target&&typeof m.target.id==='number'){
+        const replacement=enemies.find(e=>e.id===m.target.id);
+        if(replacement)m.target=replacement;
+        else m.target=null;
+      }
+    });
+  }
   // Enemy bullets — replace ours wholesale. Keep player bullets (b.ok===true) which
   // are simulated locally for input responsiveness.
   if(d.ebullets){
@@ -3891,6 +4045,28 @@ function connectWS(onOpen){
           }
           if(msg.event==='snap'&&!isHost) applySnapshot(msg.data);
           if(msg.event==='hit'&&isHost) applyJoinerHit(msg.playerId,msg.data);
+          if(msg.event==='revive'){
+            // Someone used a heart to revive a dead player.
+            const targetId=msg.data?.targetId;
+            if(targetId===myPlayerId){
+              // It's me — respawn at the location they passed (next to the reviver)
+              player.alive=true;
+              player.hp=Math.max(2,Math.floor(player.maxHp/2)); // half HP on revive
+              player.iframes=120; // 2-second invuln on revive
+              if(typeof msg.data?.x==='number')player.x=msg.data.x;
+              if(typeof msg.data?.y==='number')player.y=msg.data.y;
+              updateHUD();
+              // Banner
+              const m=document.createElement('div');
+              m.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(244,114,182,0.2);border:2px solid #f472b6;color:#f472b6;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:10px 22px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;';
+              m.innerHTML='💖 REVIVED!';
+              document.body.appendChild(m);setTimeout(()=>m.remove(),1500);
+            } else if(remotePlayers[targetId]){
+              // Some other player revived — update their visual state
+              remotePlayers[targetId].alive=true;
+              remotePlayers[targetId].hp=Math.floor(3/2);
+            }
+          }
           // 'coin' events removed — wallets are private in MP now.
           break;
       }
