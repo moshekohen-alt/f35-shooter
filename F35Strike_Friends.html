@@ -42,6 +42,7 @@ canvas#cv{display:none;position:fixed;top:0;left:0;touch-action:none;}
 /* CHEAT — tiny lock, bottom-left corner so it's never hit accidentally */
 #mbtn-cheat{width:30px;height:30px;left:14px;bottom:calc(20px + env(safe-area-inset-bottom));background:rgba(0,0,0,0.45);border:1px solid #444;color:#666;font-size:13px;}
 #mbtn-cheat.unlocked{border-color:#0ffc;color:#0ff;}
+body.mp-mode #mbtn-cheat{display:none!important;}
 
 /* ── SCREENS ── */
 .screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000810;overflow-y:auto;padding:20px;}
@@ -364,6 +365,8 @@ let ws=null, myPlayerId=null, myRoom=null, multiMode=false;
 let myColor='#00ffff';       // my plane outline color (set when room is created/joined)
 let myName='';               // my display name in the room
 let isHost=false;            // true if I created the room (authoritative simulator)
+let savedSoloState=null;     // snapshot of currentUser saved when entering MP, restored on exit
+const MP_START_COINS=200;    // each player starts an MP session with this many coins
 let lastSnapshotFrame=0;     // host: last frame we broadcast a snapshot
 let snapshotIntervalFrames=10; // host: every ~6Hz @ 60fps
 let pendingHostHits=[];      // joiner: damage events we sent that haven't been confirmed
@@ -2262,11 +2265,10 @@ function earnCoins(n){
   stageCoinsEarned+=n;
   currentUser.coins+=n;
   document.getElementById('coins-val').textContent=currentUser.coins;
-  saveLocal();
-  // Host: tell joiners about the shared coin pool so their HUD updates too
-  if(multiMode&&isHost&&ws&&ws.readyState===1&&n!==0){
-    ws.send(JSON.stringify({type:'event',event:'coin',data:{coins:currentUser.coins,delta:n}}));
-  }
+  // In MP, each player has a private wallet — don't broadcast.
+  // (Coins still don't get persisted to localStorage in MP because saveLocal
+  // is a no-op for the MP session — see enterMpSession().)
+  if(!multiMode)saveLocal();
 }
 
 // ══════════════════════════════════════════════
@@ -2687,10 +2689,19 @@ function update(){
         }
         e.hp-=b.dmg;hit=true;
         if(e.hp<=0){
-          // Only the simulator removes the enemy & awards coins. Joiners just
-          // mark it dead visually until the next snapshot drops it.
-          if(imSimulating()){killEnemy(e);return false;}
+          if(imSimulating()){
+            // Solo or host: full kill (removes enemy, awards coins to host)
+            killEnemy(e);return false;
+          }
+          // Joiner in MP private-wallet: I get credit because my bullet finished it.
+          // Award coins locally; host will drop the enemy on next snapshot.
           spawnP(e.x,e.y,'#fca5a5',8,4);
+          // Same coin-drop scaling as solo killEnemy
+          let coins;
+          if(currentStage<=3)coins=Math.floor(Math.random()*3)+1;
+          else if(currentStage<=6)coins=Math.floor(Math.random()*5)+3;
+          else coins=Math.floor(Math.random()*6)+5;
+          earnCoins(coins);
           return true;
         }
         spawnP(e.x,e.y,'#fca5a5',3,2);return true;
@@ -3102,6 +3113,7 @@ function draw(){
 function updateHUD(){
   if(!currentUser)return;
   document.getElementById('coins-val').textContent=currentUser.coins;
+  if(!player)return; // not in a game yet (e.g. just entered MP, before initGame)
   const hpPct=Math.max(0,player.hp/player.maxHp*100);
   document.getElementById('health-bar').style.width=hpPct+'%';
   document.getElementById('health-bar').style.background=player.hp<=1?'linear-gradient(90deg,#f00,#f80)':player.hp<=Math.ceil(player.maxHp/3)?'linear-gradient(90deg,#f80,#ff0)':'linear-gradient(90deg,#0f0,#0ff)';
@@ -3523,7 +3535,13 @@ function handleAction(action){
     case 'login': doLogin(); break;
     case 'new-account': doNewAccount(); break;
     case 'solo':
-      multiMode=false;cheatOn=false;cheatBuf='';
+      // If we were in MP, restore solo progress before starting
+      if(multiMode||savedSoloState){
+        if(ws&&ws.readyState===1)ws.close();
+        multiMode=false;isHost=false;
+        leaveMpSession();
+      }
+      cheatOn=false;cheatBuf='';
       currentStage=currentUser.stage||1;
       if(!currentUser.selectedWeapons)currentUser.selectedWeapons=[currentUser.selectedWeapon||'bullet'];
       showPreSelect(currentStage);
@@ -3533,6 +3551,12 @@ function handleAction(action){
     case 'show-hangar':
       buildShop('planes');showScreen('shop-screen');break;
     case 'back-menu':
+      // If we were in MP, restore solo progress
+      if(multiMode||savedSoloState){
+        if(ws&&ws.readyState===1)ws.close();
+        multiMode=false;isHost=false;
+        leaveMpSession();
+      }
       showScreen('menu-screen');
       document.getElementById('menu-coins').textContent=currentUser.coins;
       break;
@@ -3637,7 +3661,49 @@ const MP_COLORS=['#00ffff','#f472b6','#4ade80','#facc15','#fb923c','#c084fc'];
 
 function setMultiErr(msg){document.getElementById('multi-err').textContent=msg;}
 
-// Joiner: replace local world state with the host's authoritative snapshot.
+// Multiplayer session lifecycle.
+//  enterMpSession() — called when you successfully create or join a room.
+//    Snapshots your real solo progress, then resets to the MP starting state
+//    (200 coins, only F-16 + Machine Gun owned). MP is a sandbox session.
+//  leaveMpSession() — called when you exit MP (back to menu, disconnect, etc).
+//    Restores your real solo progress so nothing carries over.
+function enterMpSession(){
+  if(!currentUser)return;
+  if(savedSoloState)return; // already in MP, don't double-snapshot
+  // Deep clone the parts of currentUser that MP changes, so we can restore later
+  savedSoloState={
+    coins:currentUser.coins,
+    ownedPlanes:currentUser.ownedPlanes.slice(),
+    ownedWeapons:currentUser.ownedWeapons.slice(),
+    selectedPlane:currentUser.selectedPlane,
+    selectedWeapon:currentUser.selectedWeapon,
+    selectedWeapons:(currentUser.selectedWeapons||['bullet']).slice(),
+    stage:currentUser.stage
+  };
+  // Reset to MP starting kit: 200 coins, F-16 + Machine Gun only
+  currentUser.coins=MP_START_COINS;
+  currentUser.ownedPlanes=['f16'];
+  currentUser.ownedWeapons=['bullet'];
+  currentUser.selectedPlane='f16';
+  currentUser.selectedWeapon='bullet';
+  currentUser.selectedWeapons=['bullet'];
+  currentUser.stage=1;
+  // Mark MP visually (hides cheat button via CSS)
+  document.body.classList.add('mp-mode');
+  // Don't saveLocal() — we don't want this state persisted to disk
+  updateHUD();
+}
+function leaveMpSession(){
+  if(!savedSoloState||!currentUser)return;
+  // Restore solo progress
+  Object.assign(currentUser,savedSoloState);
+  savedSoloState=null;
+  document.body.classList.remove('mp-mode');
+  saveLocal();
+  updateHUD();
+}
+
+
 // Enemies are matched by id so existing enemy objects keep their identity (and
 // any per-frame visual state we don't sync, like hit-flash particles).
 function applySnapshot(d){
@@ -3721,7 +3787,9 @@ function applyJoinerHit(playerId,d){
   e.hp-=d.dmg||0;
   spawnP(e.x,e.y,'#fca5a5',6,3);
   if(e.hp<=0){
-    killEnemy(e);
+    // Host: remove the enemy. The killing joiner already credited their own
+    // wallet locally (private-wallet MP). Next snapshot will sync to other clients.
+    spawnP(e.x,e.y,'#fca5a5',14,5);
     enemies=enemies.filter(x=>x!==e);
   }
 }
@@ -3741,6 +3809,7 @@ function connectWS(onOpen){
           isHost=true; // I created the room — I'm the simulation authority
           myColor=MP_COLORS[(myPlayerId-1)%MP_COLORS.length];
           myName=currentUser.name;
+          enterMpSession();
           // Tell the room my real color (initial create used a placeholder)
           ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
           document.getElementById('room-code-display').style.display='block';
@@ -3751,6 +3820,7 @@ function connectWS(onOpen){
           isHost=false; // I'm a guest — host runs the simulation
           myColor=MP_COLORS[(myPlayerId-1)%MP_COLORS.length];
           myName=currentUser.name;
+          enterMpSession();
           ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
           setMultiErr('Joined! Wait for host...');break;
         case 'players': {
@@ -3821,14 +3891,7 @@ function connectWS(onOpen){
           }
           if(msg.event==='snap'&&!isHost) applySnapshot(msg.data);
           if(msg.event==='hit'&&isHost) applyJoinerHit(msg.playerId,msg.data);
-          if(msg.event==='coin'&&!isHost){
-            // Host says: someone earned coins. Update our local view of the shared pool.
-            if(typeof msg.data==='object'&&typeof msg.data.coins==='number'){
-              currentUser.coins=msg.data.coins;
-              if(typeof msg.data.delta==='number')stageCoinsEarned+=msg.data.delta;
-              updateHUD();
-            }
-          }
+          // 'coin' events removed — wallets are private in MP now.
           break;
       }
     };
