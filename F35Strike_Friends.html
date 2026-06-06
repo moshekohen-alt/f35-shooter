@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>F-35 Strike</title>
+<title>F-35 התקפה</title>
 <style>
 /* fonts removed for performance */
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -92,147 +92,147 @@ body.mp-mode #mbtn-cheat{display:none!important;}
 <!-- HUD -->
 <div id="hud">
   <div class="hud-box">
-    <div class="hud-label">Hull</div>
+    <div class="hud-label">בריאות</div>
     <div id="health-bar-wrap"><div id="health-bar" style="width:100%"></div></div>
   </div>
   <div id="stage-hud">
-    <div id="stage-val">STAGE 1 / 10</div>
+    <div id="stage-val">שלב 1 / 10</div>
     <div id="progress-wrap"><div id="progress-bar" style="width:0%"></div></div>
   </div>
   <div class="hud-box" id="coins-hud">
-    <div class="hud-label">🪙 Coins</div>
+    <div class="hud-label">🪙 מטבעות</div>
     <div class="hud-val" id="coins-val">0</div>
   </div>
 </div>
 <div id="weapon-hud"></div>
 <div id="bomb-hud" style="position:fixed;bottom:60px;right:10px;background:rgba(0,20,40,0.85);border:1px solid #ff8800;border-radius:6px;padding:4px 10px;z-index:10;pointer-events:none;display:flex;align-items:center;gap:6px;">
   <span style="font-size:18px;">💣</span>
-  <span style="font-family:monospace;font-size:10px;color:#ff8800;letter-spacing:1px;">I = BOMB</span>
+  <span style="font-family:monospace;font-size:10px;color:#ff8800;letter-spacing:1px;">I = פצצה</span>
 </div>
 
 <!-- Pre-stage selection screen -->
 <div class="screen" id="preselect-screen" style="display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;padding-top:12px;">
-  <h1 id="ps-title">STAGE 1 LOADOUT</h1>
-  <div class="sub">Choose your plane and 7 weapons</div>
+  <h1 id="ps-title">שלב 1 - ציוד</h1>
+  <div class="sub">בחר מטוס ועד 7 נשקים</div>
   <div style="font-family:monospace;font-size:11px;color:#ffd700;margin-bottom:12px;">🪙 <span id="ps-coins">0</span></div>
 
-  <div style="font-size:11px;color:rgba(0,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">SELECT PLANE</div>
+  <div style="font-size:11px;color:rgba(0,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">בחר מטוס</div>
   <div id="ps-planes" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:480px;width:90%;margin-bottom:12px;"></div>
 
-  <div style="font-size:11px;color:rgba(0,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">SELECT UP TO 7 WEAPONS <span id="weapon-count-label">(0/7)</span></div>
+  <div style="font-size:11px;color:rgba(0,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">בחר עד 7 נשקים <span id="weapon-count-label">(0/7)</span></div>
 <div id="ps-weapons" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:480px;width:92%;height:42vh;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-bottom:12px;padding-right:2px;border:1px solid rgba(0,255,255,0.1);border-radius:6px;padding:6px;"></div>
 
   <div style="display:flex;gap:10px;margin-top:4px;">
-    <button class="obtn" onclick="handleAction('back-menu')" style="font-size:10px;">← BACK</button>
-    <button class="obtn green" onclick="confirmLoadout()">▶ GO TO BATTLE</button>
+    <button class="obtn" onclick="handleAction('back-menu')" style="font-size:10px;">← חזור</button>
+    <button class="obtn green" onclick="confirmLoadout()">▶ קדימה לקרב!</button>
   </div>
 </div>
 
 <!-- Cheat Code Modal -->
 <div id="cheat-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
   <div style="background:#000c18;border:2px solid #00ffff;border-radius:10px;padding:28px 32px;text-align:center;max-width:320px;width:90%;">
-    <div style="font-size:14px;font-weight:700;color:#00ffff;letter-spacing:3px;margin-bottom:16px;">🔒 ENTER CHEAT CODE</div>
+    <div style="font-size:14px;font-weight:700;color:#00ffff;letter-spacing:3px;margin-bottom:16px;">🔒 הזן קוד צ׳יט</div>
     <input id="cheat-input" class="input-field" placeholder="____" maxlength="4" inputmode="numeric" style="width:140px;font-size:28px;letter-spacing:8px;text-align:center;margin-bottom:16px;">
     <div class="err-msg" id="cheat-err"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
-      <button class="obtn gold" onclick="submitCheatCode()">ENTER</button>
-      <button class="obtn" onclick="closeCheatModal()">CANCEL</button>
+      <button class="obtn gold" onclick="submitCheatCode()">כניסה</button>
+      <button class="obtn" onclick="closeCheatModal()">ביטול</button>
     </div>
   </div>
 </div>
 
 <!-- Boss warning -->
-<div id="boss-warning"><div class="bw-text">⚠️ BOSS INCOMING ⚠️</div></div>
+<div id="boss-warning"><div class="bw-text">⚠️ בוס מתקרב ⚠️</div></div>
 
 <!-- Mobile controls — floating buttons over transparent bar -->
 <div id="mobile-ctrls">
   <div class="mbtn" id="mbtn-cycle" onclick="handleAction('cycle')">🔄</div>
   <div class="mbtn" id="mbtn-cheat" onclick="handleAction('cheat')">🔒</div>
-  <div class="mbtn" id="mbtn-fire" onclick="handleAction('fire')"><span style="font-size:24px">🚀</span><span style="font-size:8px;margin-top:2px">FIRE</span></div>
+  <div class="mbtn" id="mbtn-fire" onclick="handleAction('fire')"><span style="font-size:24px">🚀</span><span style="font-size:8px;margin-top:2px">אש</span></div>
   <div class="mbtn" id="mbtn-bomb" onclick="fireGroundBomb()">💣</div>
 </div>
 
 <!-- ── LOGIN SCREEN ── -->
 <div class="screen" id="login-screen">
-  <h1>F-35 STRIKE</h1>
-  <div class="sub">Enter your callsign to begin</div>
-  <input class="input-field" id="login-name" placeholder="YOUR NAME" maxlength="16" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="username" style="margin-bottom:8px;">
-  <input class="input-field" id="login-pass" placeholder="3-DIGIT CODE" maxlength="3" inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" style="margin-bottom:8px;">
+  <h1>F-35 התקפה</h1>
+  <div class="sub">הזן שם טייס כדי להתחיל</div>
+  <input class="input-field" id="login-name" placeholder="השם שלך" maxlength="16" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="username" style="margin-bottom:8px;">
+  <input class="input-field" id="login-pass" placeholder="קוד 3 ספרות" maxlength="3" inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" style="margin-bottom:8px;">
   <div class="err-msg" id="login-err"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-    <button class="obtn" onclick="doLogin()">ENTER</button>
-    <button class="obtn gold" onclick="doNewAccount()">NEW PILOT</button>
+    <button class="obtn" onclick="doLogin()">כניסה</button>
+    <button class="obtn gold" onclick="doNewAccount()">טייס חדש</button>
   </div>
   <div style="font-family:monospace;font-size:9px;color:#0ff4;margin-top:16px;text-align:center;line-height:1.8;">
-    NEW PILOT: choose a name + create a 3-digit code<br>RETURNING: enter your name + your code
+    טייס חדש: בחר שם וצור קוד 3 ספרות<br>חוזר: הזן את השם והקוד שלך
   </div>
 </div>
 
 <!-- ── MAIN MENU ── -->
 <div class="screen" id="menu-screen" style="display:none;">
-  <h1>F-35 STRIKE</h1>
-  <div class="sub" id="welcome-msg">WELCOME BACK, PILOT</div>
-  <div style="font-family:monospace;font-size:12px;color:#ffd700;margin-bottom:20px;">🪙 <span id="menu-coins">0</span> coins</div>
-  <button class="obtn" onclick="handleAction('solo')">▶ SOLO MISSION</button>
-  <button class="obtn" onclick="handleAction('show-multi')" style="margin-top:4px;">📡 MULTIPLAYER</button>
-  <button class="obtn gold" onclick="handleAction('show-hangar')" style="margin-top:4px;">🛩️ HANGAR & ARMORY</button>
-  <button class="obtn" onclick="handleAction('logout')" style="margin-top:12px;font-size:10px;opacity:0.5;">LOGOUT</button>
+  <h1>F-35 התקפה</h1>
+  <div class="sub" id="welcome-msg">ברוך הבא, טייס</div>
+  <div style="font-family:monospace;font-size:12px;color:#ffd700;margin-bottom:20px;">🪙 <span id="menu-coins">0</span> מטבעות</div>
+  <button class="obtn" onclick="handleAction('solo')">▶ משחק לבד</button>
+  <button class="obtn" onclick="handleAction('show-multi')" style="margin-top:4px;">📡 משחק רשת</button>
+  <button class="obtn gold" onclick="handleAction('show-hangar')" style="margin-top:4px;">🛩️ מוסך וחימוש</button>
+  <button class="obtn" onclick="handleAction('logout')" style="margin-top:12px;font-size:10px;opacity:0.5;">התנתק</button>
 </div>
 
 <!-- ── MULTIPLAYER LOBBY ── -->
 <div class="screen" id="multi-screen" style="display:none;">
-  <h1>ONLINE</h1>
-  <div class="sub">Join or create a room</div>
-  <button class="obtn" onclick="handleAction('create-room')">📡 CREATE ROOM</button>
+  <h1>משחק רשת</h1>
+  <div class="sub">הצטרף או צור חדר</div>
+  <button class="obtn" onclick="handleAction('create-room')">📡 צור חדר</button>
   <div style="display:flex;gap:8px;align-items:center;margin:8px 0;">
-    <input class="input-field" id="room-input" placeholder="CODE" maxlength="4" inputmode="numeric" style="width:120px;"/>
-    <button class="obtn" onclick="handleAction('join-room')">JOIN</button>
+    <input class="input-field" id="room-input" placeholder="קוד" maxlength="4" inputmode="numeric" style="width:120px;"/>
+    <button class="obtn" onclick="handleAction('join-room')">הצטרף</button>
   </div>
   <div class="err-msg" id="multi-err"></div>
   <div id="room-code-display" style="display:none;text-align:center;margin:8px 0;">
-    <div style="font-family:monospace;font-size:10px;color:#0ff7;margin-bottom:6px;">SHARE THIS CODE:</div>
+    <div style="font-family:monospace;font-size:10px;color:#0ff7;margin-bottom:6px;">שתף את הקוד הזה:</div>
     <div id="room-code-val" style="font-size:40px;font-weight:900;color:#0ff;text-shadow:0 0 20px #0ff;letter-spacing:8px;">----</div>
     <div id="room-players" style="font-family:monospace;font-size:10px;color:#0ff6;margin-top:6px;"></div>
-    <button class="obtn green" onclick="handleAction('start-online')" style="margin-top:10px;">▶ START GAME</button>
+    <button class="obtn green" onclick="handleAction('start-online')" style="margin-top:10px;">▶ התחל משחק</button>
   </div>
-  <button class="obtn" onclick="handleAction('back-menu')" style="margin-top:12px;font-size:10px;">← BACK</button>
+  <button class="obtn" onclick="handleAction('back-menu')" style="margin-top:12px;font-size:10px;">← חזור</button>
 </div>
 
 <!-- ── HANGAR & ARMORY ── -->
 <div class="screen" id="shop-screen" style="display:none;">
-  <h1>🛩️ HANGAR</h1>
+  <h1>🛩️ מוסך</h1>
   <div style="font-family:monospace;font-size:11px;color:#ffd700;margin-bottom:10px;">🪙 <span id="shop-coins">0</span></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;">
-    <button class="obtn" id="tab-planes" onclick="handleAction('tab-planes')">PLANES</button>
-    <button class="obtn gold" id="tab-weapons" onclick="handleAction('tab-weapons')">WEAPONS</button>
+    <button class="obtn" id="tab-planes" onclick="handleAction('tab-planes')">מטוסים</button>
+    <button class="obtn gold" id="tab-weapons" onclick="handleAction('tab-weapons')">נשק</button>
   </div>
   <div class="shop-grid" id="shop-grid"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-    <button class="obtn" onclick="handleAction('back-menu')">← BACK</button>
-    <button class="obtn gold" onclick="promptShopCheat()" id="shop-cheat-btn">🔒 CHEAT CODE</button>
+    <button class="obtn" onclick="handleAction('back-menu')">← חזור</button>
+    <button class="obtn gold" onclick="promptShopCheat()" id="shop-cheat-btn">🔒 קוד צ׳יט</button>
   </div>
 </div>
 
 <!-- ── BETWEEN STAGES ── -->
 <div class="screen" id="stage-end-screen" style="display:none;">
-  <h1 id="se-title">STAGE CLEAR!</h1>
-  <div class="sub" id="se-sub">Stage 1 complete</div>
-  <div style="font-family:monospace;font-size:13px;color:#ffd700;margin-bottom:16px;">+<span id="se-coins">0</span> 🪙 earned</div>
-  <div style="font-family:monospace;font-size:10px;color:#0ff8;margin-bottom:8px;letter-spacing:2px;">SHOP & GET READY</div>
+  <h1 id="se-title">שלב הסתיים!</h1>
+  <div class="sub" id="se-sub">שלב 1 הושלם</div>
+  <div style="font-family:monospace;font-size:13px;color:#ffd700;margin-bottom:16px;">+<span id="se-coins">0</span> 🪙 הרווחת</div>
+  <div style="font-family:monospace;font-size:10px;color:#0ff8;margin-bottom:8px;letter-spacing:2px;">קנייה והתכוננות</div>
   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:center;">
-    <button class="obtn gold" onclick="handleAction('shop-mid')">🛩️ SHOP</button>
-    <button class="obtn green" onclick="handleAction('ready-up')">✅ READY</button>
+    <button class="obtn gold" onclick="handleAction('shop-mid')">🛩️ חנות</button>
+    <button class="obtn green" onclick="handleAction('ready-up')">✅ מוכן</button>
   </div>
   <div class="ready-list" id="ready-list"></div>
 </div>
 
 <!-- ── GAME OVER ── -->
 <div class="screen" id="gameover-screen" style="display:none;">
-  <h1 id="go-title">MISSION FAILED</h1>
+  <h1 id="go-title">המשימה נכשלה</h1>
   <div id="go-results" style="margin:12px 0;width:100%;display:flex;flex-direction:column;align-items:center;"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-    <button class="obtn" onclick="handleAction('retry')">RETRY</button>
-    <button class="obtn" onclick="handleAction('back-menu')">MENU</button>
+    <button class="obtn" onclick="handleAction('retry')">נסה שוב</button>
+    <button class="obtn" onclick="handleAction('back-menu')">תפריט</button>
   </div>
 </div>
 
@@ -244,15 +244,15 @@ const PLANES=[
   // hp=health, speedMult=movement speed, fireRate=ticks between auto-bullets (lower=faster),
   // bulletDmg=auto-bullet damage, hitRadius=how big the player's hitbox is (smaller=harder to hit)
   {id:'f16',name:'F-16 Falcon',emoji:'✈️',hp:3,speedMult:1.0,fireRate:12,bulletDmg:1,hitRadius:24,price:0,
-   desc:'Classic fighter. Balanced stats, slow fire rate.'},
+   desc:'מטוס קרב קלאסי. נתונים מאוזנים, ירי איטי.'},
   {id:'fa18',name:'F/A-18 Hornet',emoji:'🛩️',hp:5,speedMult:1.1,fireRate:10,bulletDmg:1,hitRadius:23,price:200,
-   desc:'Carrier-based. More armor, faster fire rate.'},
+   desc:'מבוסס נושאת מטוסים. שריון חזק, ירי מהיר יותר.'},
   {id:'f22',name:'F-22 Raptor',emoji:'🚀',hp:7,speedMult:1.2,fireRate:9,bulletDmg:2,hitRadius:22,price:500,
-   desc:'5th gen stealth. Double-damage bullets.'},
+   desc:'דור 5 חמקן. כדורים בעלי נזק כפול.'},
   {id:'f35',name:'F-35 Lightning',emoji:'⚡',hp:10,speedMult:1.3,fireRate:8,bulletDmg:2,hitRadius:21,price:1000,
-   desc:'Multi-role beast. Fast fire, hard to hit.'},
+   desc:'חיה רב תפקידית. ירי מהיר, קשה לפגוע.'},
   {id:'sr72',name:'SR-72 Darkstar',emoji:'🌟',hp:15,speedMult:1.5,fireRate:6,bulletDmg:3,hitRadius:18,price:3500,unlockStage:7,
-   desc:'CLASSIFIED. Triple damage, rapid fire, tiny hitbox. Unlocks after Stage 7.'},
+   desc:'מסווג. נזק משולש, ירי מהיר, היטבוקס זעיר. נפתח אחרי שלב 7.'},
 ];
 
 // ══════════════════════════════════════════════
@@ -260,55 +260,55 @@ const PLANES=[
 // ══════════════════════════════════════════════
 const WEAPONS=[
   // Tier 1 — starters (0-200): cheap, low damage, basic
-  {id:'bullet',name:'Machine Gun',emoji:'🔫',desc:'Rapid fire bullets',damage:1,price:0,color:'#aaaaaa',type:'bullet'},
-  {id:'rocket',name:'Rocket',emoji:'🚀',desc:'Basic homing rocket',damage:2,price:50,color:'#ff8800',type:'homing'},
-  {id:'cluster',name:'Cluster Bomb',emoji:'💥',desc:'Splits into 5 on impact',damage:2,price:100,color:'#ff6600',type:'cluster'},
-  {id:'emp',name:'EMP',emoji:'⚡',desc:'Freezes all enemies',damage:0,price:150,color:'#66aaff',type:'emp'},
-  {id:'napalm',name:'Napalm',emoji:'🔥',desc:'Leaves burning trail',damage:3,price:200,color:'#ff4400',type:'napalm'},
+  {id:'bullet',name:'מקלע',emoji:'🔫',desc:'ירי כדורים מהיר',damage:1,price:0,color:'#aaaaaa',type:'bullet'},
+  {id:'rocket',name:'רקטה',emoji:'🚀',desc:'רקטה מתביתת בסיסית',damage:2,price:50,color:'#ff8800',type:'homing'},
+  {id:'cluster',name:'פצצת מצרר',emoji:'💥',desc:'מתפצלת ל-5 בפגיעה',damage:2,price:100,color:'#ff6600',type:'cluster'},
+  {id:'emp',name:'נשק אלקטרומגנטי',emoji:'⚡',desc:'מקפיא את כל האויבים',damage:0,price:150,color:'#66aaff',type:'emp'},
+  {id:'napalm',name:'נפלם',emoji:'🔥',desc:'משאיר שובל אש',damage:3,price:200,color:'#ff4400',type:'napalm'},
   // Tier 2 — workhorses (250-700): solid damage, useful in mid-game
-  {id:'laser',name:'Laser Beam',emoji:'🎯',desc:'Instant piercing line',damage:5,price:300,color:'#ff00ff',type:'laser'},
-  {id:'homing',name:'Homing Missile',emoji:'🎯',desc:'Locks on target',damage:6,price:400,color:'#ffff00',type:'homing'},
-  {id:'nuke',name:'Nuke',emoji:'☢️',desc:'Clears the screen',damage:99,price:500,color:'#00ff00',type:'nuke'},
-  {id:'ion',name:'Ion Cannon',emoji:'💠',desc:'Wide energy beam',damage:9,price:650,color:'#00ffff',type:'laser'},
-  {id:'plasma',name:'Plasma Ball',emoji:'🔮',desc:'Bouncing plasma orb',damage:8,price:750,color:'#aa00ff',type:'plasma'},
+  {id:'laser',name:'קרן לייזר',emoji:'🎯',desc:'קו חודר מיידי',damage:5,price:300,color:'#ff00ff',type:'laser'},
+  {id:'homing',name:'טיל מתבייט',emoji:'🎯',desc:'נועל מטרה',damage:6,price:400,color:'#ffff00',type:'homing'},
+  {id:'nuke',name:'גרעיני',emoji:'☢️',desc:'מנקה את המסך',damage:99,price:500,color:'#00ff00',type:'nuke'},
+  {id:'ion',name:'תותח יונים',emoji:'💠',desc:'קרן אנרגיה רחבה',damage:9,price:650,color:'#00ffff',type:'laser'},
+  {id:'plasma',name:'כדור פלזמה',emoji:'🔮',desc:'כדור פלזמה קופץ',damage:8,price:750,color:'#aa00ff',type:'plasma'},
   // Tier 3 — heavy hitters (850-1400): big damage, late game
-  {id:'shock',name:'Shockwave',emoji:'💫',desc:'360° blast around you',damage:7,price:850,color:'#ffff88',type:'shockwave'},
-  {id:'quantum',name:'Quantum Torpedo',emoji:'🌀',desc:'Passes through shields',damage:12,price:1000,color:'#0088ff',type:'homing'},
-  {id:'freeze',name:'Freeze Ray',emoji:'❄️',desc:'Freeze then explode',damage:10,price:1100,color:'#88ffff',type:'freeze'},
-  {id:'blackhole',name:'Black Hole',emoji:'🕳️',desc:'Pulls all enemies in',damage:15,price:1300,color:'#440088',type:'blackhole'},
-  {id:'mirror',name:'Mirror Shield',emoji:'🪞',desc:'Reflects enemy fire',damage:0,price:1400,color:'#ffffff',type:'shield'},
+  {id:'shock',name:'גל הדף',emoji:'💫',desc:'התפוצצות 360° סביבך',damage:7,price:850,color:'#ffff88',type:'shockwave'},
+  {id:'quantum',name:'טורפדו קוונטי',emoji:'🌀',desc:'עובר דרך מגנים',damage:12,price:1000,color:'#0088ff',type:'homing'},
+  {id:'freeze',name:'קרן הקפאה',emoji:'❄️',desc:'מקפיא ואז מפוצץ',damage:10,price:1100,color:'#88ffff',type:'freeze'},
+  {id:'blackhole',name:'חור שחור',emoji:'🕳️',desc:'מושך את כל האויבים פנימה',damage:15,price:1300,color:'#440088',type:'blackhole'},
+  {id:'mirror',name:'מגן מראה',emoji:'🪞',desc:'מחזיר אש אויב',damage:0,price:1400,color:'#ffffff',type:'shield'},
   // Tier 4 — endgame ultimates (1500+): obliterators
-  {id:'chain',name:'Chain Lightning',emoji:'⚡',desc:'Jumps between enemies',damage:9,price:1500,color:'#ffff00',type:'chain'},
-  {id:'gravity',name:'Gravity Bomb',emoji:'🌍',desc:'Pulls all enemies to center',damage:14,price:1700,color:'#884400',type:'gravity'},
-  {id:'solar',name:'Solar Flare',emoji:'☀️',desc:'Burns entire screen',damage:20,price:2000,color:'#ff8800',type:'nuke'},
-  {id:'darkmatter',name:'Dark Matter',emoji:'🌑',desc:'Destroys on contact',damage:25,price:2400,color:'#660066',type:'plasma'},
-  {id:'omega',name:'Omega Beam',emoji:'💎',desc:'OBLITERATES EVERYTHING',damage:999,price:3500,color:'#00ffff',type:'laser'},
+  {id:'chain',name:'ברק שרשרת',emoji:'⚡',desc:'קופץ בין אויבים',damage:9,price:1500,color:'#ffff00',type:'chain'},
+  {id:'gravity',name:'פצצת גרביטציה',emoji:'🌍',desc:'מושך את כל האויבים למרכז',damage:14,price:1700,color:'#884400',type:'gravity'},
+  {id:'solar',name:'התלקחות שמש',emoji:'☀️',desc:'שורף את כל המסך',damage:20,price:2000,color:'#ff8800',type:'nuke'},
+  {id:'darkmatter',name:'חומר אפל',emoji:'🌑',desc:'מחסל במגע',damage:25,price:2400,color:'#660066',type:'plasma'},
+  {id:'omega',name:'קרן אומגה',emoji:'💎',desc:'משמיד הכל',damage:999,price:3500,color:'#00ffff',type:'laser'},
 ];
 
 // ══════════════════════════════════════════════
 // BOSSES (10)
 // ══════════════════════════════════════════════
 const BOSSES=[
-  {name:'The Terminator',emoji:'🤖',hp:80,speed:1.2,color:'#cc3333',shootRate:55,reward:150,
-   desc:'Heavy battle robot. Fires slow but deadly energy bursts.',bulletColor:'#ff3333',bulletSpread:1},
-  {name:'Sky Dragon',emoji:'🐉',hp:140,speed:1.8,color:'#cc4400',shootRate:40,reward:200,
-   desc:'Ancient fire dragon. Breathes fireballs in wide arcs.',bulletColor:'#ff6600',bulletSpread:3},
-  {name:'Alien Mothership',emoji:'👾',hp:220,speed:1.5,color:'#44cc44',shootRate:30,reward:280,
-   desc:'Extraterrestrial warship. Fires rotating laser beams.',bulletColor:'#00ff88',bulletSpread:5},
-  {name:'War Eagle',emoji:'🦅',hp:300,speed:2.8,color:'#cc8800',shootRate:25,reward:360,
-   desc:'Cybernetic war bird. Dives fast and fires in bursts.',bulletColor:'#ffaa00',bulletSpread:2},
-  {name:'Zombie Bomber',emoji:'🧟',hp:420,speed:1.4,color:'#556633',shootRate:22,reward:450,
-   desc:'Undead aircraft. Drops toxic bombs that linger.',bulletColor:'#88cc00',bulletSpread:4},
-  {name:'Storm Giant',emoji:'🌪️',hp:550,speed:2.2,color:'#4488cc',shootRate:18,reward:550,
-   desc:'Living storm entity. Lightning strikes from all angles.',bulletColor:'#88aaff',bulletSpread:6},
-  {name:'Cyber Samurai',emoji:'🤺',hp:700,speed:3.5,color:'#cc44cc',shootRate:14,reward:680,
-   desc:'Ultra-fast blade master. Fires razor disc projectiles.',bulletColor:'#ff44ff',bulletSpread:2},
-  {name:'Sky Kraken',emoji:'🦑',hp:900,speed:2.0,color:'#2244aa',shootRate:12,reward:820,
-   desc:'Massive flying sea beast. Tentacles shoot ink bombs.',bulletColor:'#4466ff',bulletSpread:8},
-  {name:'War Demon',emoji:'👹',hp:1200,speed:3.2,color:'#cc1111',shootRate:9,reward:1000,
-   desc:'Ancient war spirit. Fires homing hellfire in all directions.',bulletColor:'#ff2200',bulletSpread:7},
-  {name:'THE OVERLORD',emoji:'💀',hp:2500,speed:4.5,color:'#880000',shootRate:6,reward:2000,
-   desc:'Final supreme being. All weapons. No mercy. GOOD LUCK.',bulletColor:'#ff0000',bulletSpread:12},
+  {name:'המחסל',emoji:'🤖',hp:80,speed:1.2,color:'#cc3333',shootRate:55,reward:150,
+   desc:'רובוט קרב כבד. יורה לאט אבל הרסני.',bulletColor:'#ff3333',bulletSpread:1},
+  {name:'דרקון השמיים',emoji:'🐉',hp:140,speed:1.8,color:'#cc4400',shootRate:40,reward:200,
+   desc:'דרקון אש עתיק. נושף כדורי אש בקשת רחבה.',bulletColor:'#ff6600',bulletSpread:3},
+  {name:'חללית חייזרים',emoji:'👾',hp:220,speed:1.5,color:'#44cc44',shootRate:30,reward:280,
+   desc:'ספינת מלחמה חייזרית. יורה קרני לייזר מסתובבות.',bulletColor:'#00ff88',bulletSpread:5},
+  {name:'נשר המלחמה',emoji:'🦅',hp:300,speed:2.8,color:'#cc8800',shootRate:25,reward:360,
+   desc:'ציפור מלחמה ממוחשבת. צוללת מהר ויורה ברצפים.',bulletColor:'#ffaa00',bulletSpread:2},
+  {name:'מפציץ זומבי',emoji:'🧟',hp:420,speed:1.4,color:'#556633',shootRate:22,reward:450,
+   desc:'מטוס מתים. מפציץ פצצות רעילות שנשארות.',bulletColor:'#88cc00',bulletSpread:4},
+  {name:'ענק הסערה',emoji:'🌪️',hp:550,speed:2.2,color:'#4488cc',shootRate:18,reward:550,
+   desc:'יצור סערה חי. ברקים מגיעים מכל הכיוונים.',bulletColor:'#88aaff',bulletSpread:6},
+  {name:'סמוראי הסייבר',emoji:'🤺',hp:700,speed:3.5,color:'#cc44cc',shootRate:14,reward:680,
+   desc:'אומן חרב מהיר במיוחד. יורה דיסקיות תער.',bulletColor:'#ff44ff',bulletSpread:2},
+  {name:'מפלצת הים המעופפת',emoji:'🦑',hp:900,speed:2.0,color:'#2244aa',shootRate:12,reward:820,
+   desc:'יצור ים ענק מעופף. הזרועות יורות פצצות דיו.',bulletColor:'#4466ff',bulletSpread:8},
+  {name:'שד המלחמה',emoji:'👹',hp:1200,speed:3.2,color:'#cc1111',shootRate:9,reward:1000,
+   desc:'רוח מלחמה עתיקה. יורה אש גיהנום מכל הכיוונים.',bulletColor:'#ff2200',bulletSpread:7},
+  {name:'האדון העליון',emoji:'💀',hp:2500,speed:4.5,color:'#880000',shootRate:6,reward:2000,
+   desc:'הישות העליונה הסופית. כל הנשקים. ללא רחמים. בהצלחה.',bulletColor:'#ff0000',bulletSpread:12},
 ];
 
 // ══════════════════════════════════════════════
@@ -329,26 +329,28 @@ const ENEMY_TYPES_BY_STAGE=[
 ];
 
 const STAGES=[
-  {enemySpeed:1.0,enemyHp:1,spawnRate:90,coinReward:120,bossAt:0.85,
-   sky:'#7ba4d1',ground:'#3d4f5e',name:'City Skies',theme:'city'},
-  {enemySpeed:1.15,enemyHp:1,spawnRate:78,coinReward:160,bossAt:0.85,
-   sky:'#8fb8d0',ground:'#1e3a5f',name:'Naval Strike',theme:'ocean'},
-  {enemySpeed:1.3,enemyHp:2,spawnRate:68,coinReward:220,bossAt:0.85,
-   sky:'#e8a878',ground:'#a87044',name:'Desert Storm',theme:'desert'},
-  {enemySpeed:1.45,enemyHp:2,spawnRate:60,coinReward:280,bossAt:0.85,
-   sky:'#b8d8e8',ground:'#cfdce8',name:'Arctic Frontier',theme:'arctic'},
-  {enemySpeed:1.6,enemyHp:3,spawnRate:52,coinReward:350,bossAt:0.85,
-   sky:'#3a1018',ground:'#651a0a',name:'Volcano',theme:'volcano'},
-  {enemySpeed:1.75,enemyHp:3,spawnRate:46,coinReward:430,bossAt:0.85,
-   sky:'#3e6c4a',ground:'#1a3520',name:'Jungle',theme:'jungle'},
-  {enemySpeed:1.9,enemyHp:4,spawnRate:40,coinReward:520,bossAt:0.85,
-   sky:'#6c8eb8',ground:'#a8b8d0',name:'Stratosphere',theme:'sky'},
-  {enemySpeed:2.1,enemyHp:5,spawnRate:35,coinReward:620,bossAt:0.85,
-   sky:'#0a0a2e',ground:'#1a1a3a',name:'Space Station',theme:'space'},
-  {enemySpeed:2.3,enemyHp:6,spawnRate:30,coinReward:750,bossAt:0.85,
-   sky:'#001a2a',ground:'#003a5a',name:'Cyber Grid',theme:'cyber'},
-  {enemySpeed:2.8,enemyHp:9,spawnRate:24,coinReward:1200,bossAt:0.75,
-   sky:'#000',ground:'#0a000a',name:'Dark Void',theme:'void'},
+  // Speeds reduced ~30% from launch and HP reduced on stages 3-7 so the default
+  // F-16 + Machine Gun stays viable through the early-mid game.
+  {enemySpeed:0.7,enemyHp:1,spawnRate:105,coinReward:120,bossAt:0.85,
+   sky:'#7ba4d1',ground:'#3d4f5e',name:'שמי העיר',theme:'city'},
+  {enemySpeed:0.8,enemyHp:1,spawnRate:90,coinReward:160,bossAt:0.85,
+   sky:'#8fb8d0',ground:'#1e3a5f',name:'קרב ימי',theme:'ocean'},
+  {enemySpeed:0.95,enemyHp:1,spawnRate:78,coinReward:220,bossAt:0.85,
+   sky:'#e8a878',ground:'#a87044',name:'סופת מדבר',theme:'desert'},
+  {enemySpeed:1.05,enemyHp:1,spawnRate:72,coinReward:280,bossAt:0.85,
+   sky:'#b8d8e8',ground:'#cfdce8',name:'הקוטב הצפוני',theme:'arctic'},
+  {enemySpeed:1.15,enemyHp:2,spawnRate:65,coinReward:350,bossAt:0.85,
+   sky:'#3a1018',ground:'#651a0a',name:'הר געש',theme:'volcano'},
+  {enemySpeed:1.25,enemyHp:2,spawnRate:58,coinReward:430,bossAt:0.85,
+   sky:'#3e6c4a',ground:'#1a3520',name:'ג׳ונגל',theme:'jungle'},
+  {enemySpeed:1.35,enemyHp:3,spawnRate:50,coinReward:520,bossAt:0.85,
+   sky:'#6c8eb8',ground:'#a8b8d0',name:'סטרטוספירה',theme:'sky'},
+  {enemySpeed:1.5,enemyHp:4,spawnRate:44,coinReward:620,bossAt:0.85,
+   sky:'#0a0a2e',ground:'#1a1a3a',name:'תחנת חלל',theme:'space'},
+  {enemySpeed:1.65,enemyHp:5,spawnRate:38,coinReward:750,bossAt:0.85,
+   sky:'#001a2a',ground:'#003a5a',name:'רשת סייבר',theme:'cyber'},
+  {enemySpeed:2.0,enemyHp:7,spawnRate:32,coinReward:1200,bossAt:0.75,
+   sky:'#000',ground:'#0a000a',name:'החלל האפל',theme:'void'},
 ];
 
 // ══════════════════════════════════════════════
@@ -2193,7 +2195,7 @@ function updateBombHud(){
   if(!btn)return;
   if(bombAmmo<=0){
     btn.style.opacity='0.35';
-    btn.innerHTML='💣<span style="font-size:7px;color:#fff;font-weight:700">EMPTY</span>';
+    btn.innerHTML='💣<span style="font-size:7px;color:#fff;font-weight:700">ריק</span>';
   } else if(bombCooldownT>0){
     btn.style.opacity='0.55';
     const sec=Math.ceil(bombCooldownT/60);
@@ -2387,7 +2389,7 @@ function update(){
         earnCoins(bonus);
         const m=document.createElement('div');
         m.style.cssText='position:fixed;top:60%;left:50%;transform:translate(-50%,-50%);background:rgba(255,200,0,0.15);border:2px solid #ffd700;color:#ffd700;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:10px 22px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;text-align:center;';
-        m.innerHTML='⚓ CARRIER SUNK<br>+'+bonus+' 🪙 BONUS';
+        m.innerHTML='⚓ נושאת מטוסים הוטבעה<br>+'+bonus+' 🪙 בונוס';
         document.body.appendChild(m);setTimeout(()=>m.remove(),2200);
         // Schedule a replacement carrier (only if boss not active)
         if(!bossActive){
@@ -2470,7 +2472,7 @@ function update(){
         // "Reinforcements" message
         const m=document.createElement('div');
         m.style.cssText='position:fixed;top:55%;left:50%;transform:translate(-50%,-50%);background:rgba(80,20,20,0.6);border:2px solid #ff5050;color:#ff8080;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;padding:8px 18px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;text-align:center;';
-        m.innerHTML='⚠️ REINFORCEMENTS<br>NEW CARRIER INCOMING';
+        m.innerHTML='⚠️ תגבורת<br>נושאת חדשה מתקרבת';
         document.body.appendChild(m);setTimeout(()=>m.remove(),1800);
       }
     }
@@ -3014,7 +3016,7 @@ function consumeHeart(hx,hy){
       // Heart consumed — show "REVIVE" feedback
       const m=document.createElement('div');
       m.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(244,114,182,0.2);border:2px solid #f472b6;color:#f472b6;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;padding:8px 18px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;';
-      m.innerHTML='💖 TEAMMATE REVIVED';
+      m.innerHTML='💖 חבר הוחייה';
       document.body.appendChild(m);setTimeout(()=>m.remove(),1500);
       return true;
     }
@@ -3236,7 +3238,7 @@ function draw(){
     if(player.alive){
       drawPlayerWithRing(player.x,player.y,player,player.tf,myColor,myName);
     } else {
-      drawDeadPlayer(player.x,player.y,myColor,myName,'YOU — wait for revive');
+      drawDeadPlayer(player.x,player.y,myColor,myName,'אתה - חכה לתחייה');
     }
   } else {
     drawPlane(player.x,player.y,player,'#00ffff',player.tf);
@@ -3248,7 +3250,7 @@ function draw(){
         const fakePl={iframes:rp.iframes||0,alive:true,shielded:false};
         drawPlayerWithRing(rp.x||0,rp.y||0,fakePl,frame,rp.color||'#f472b6',rp.name||'');
       } else {
-        drawDeadPlayer(rp.x||W()/2,rp.y||H()/2,rp.color||'#f472b6',rp.name||'','needs revive!');
+        drawDeadPlayer(rp.x||W()/2,rp.y||H()/2,rp.color||'#f472b6',rp.name||'','צריך תחייה');
       }
     });
   }
@@ -3256,35 +3258,34 @@ function draw(){
   ctx.fillStyle='rgba(0,0,0,0.45)';ctx.font='bold 13px Orbitron,sans-serif';ctx.textAlign='left';
   ctx.fillText(currentUser?.name||'',10,H()-8);
   // ── MP debug overlay ──
-  // Auto-show if joiner has been getting no snapshots, OR manually toggled.
-  // Helps diagnose the "no enemies on player 2" class of issues.
-  if(multiMode){
+  // Only shows when explicitly enabled with showMpDebug(true) in the console.
+  // (Previous version auto-showed on enemies=0, but that triggers between waves
+  // even when sync is working — too noisy.)
+  if(multiMode && _showMpDebug){
     const since=_mpStats.lastSnapAt?Date.now()-_mpStats.lastSnapAt:Infinity;
-    const stuck = !isHost && (since>2000 || enemies.length===0);
-    if(_showMpDebug || stuck){
-      ctx.save();
-      ctx.font='bold 10px monospace';
-      ctx.textAlign='right';
-      ctx.textBaseline='top';
-      const lines=[
-        (isHost?'HOST':'JOIN')+' id='+myPlayerId,
-        'enemies='+enemies.length,
-        'snapRX='+_mpStats.snapsRecv+' TX='+_mpStats.snapsSent,
-        'lastSnap='+(since===Infinity?'never':Math.round(since)+'ms ago'),
-        'ws='+(ws?ws.readyState:'null')+(stuck?' STUCK':'')
-      ];
-      const x=W()-8;
-      let y=80;
-      lines.forEach(line=>{
-        const w=ctx.measureText(line).width+8;
-        ctx.fillStyle=stuck?'rgba(120,0,0,0.85)':'rgba(0,0,0,0.7)';
-        ctx.fillRect(x-w,y,w,13);
-        ctx.fillStyle='#ffd700';
-        ctx.fillText(line,x-4,y+1);
-        y+=14;
-      });
-      ctx.restore();
-    }
+    const stuck = !isHost && since>3000; // real desync: no snaps for 3+ sec
+    ctx.save();
+    ctx.font='bold 10px monospace';
+    ctx.textAlign='right';
+    ctx.textBaseline='top';
+    const lines=[
+      (isHost?'HOST':'JOIN')+' id='+myPlayerId,
+      'enemies='+enemies.length,
+      'snapRX='+_mpStats.snapsRecv+' TX='+_mpStats.snapsSent,
+      'lastSnap='+(since===Infinity?'never':Math.round(since)+'ms ago'),
+      'ws='+(ws?ws.readyState:'null')+(stuck?' STUCK':'')
+    ];
+    const x=W()-8;
+    let y=80;
+    lines.forEach(line=>{
+      const w=ctx.measureText(line).width+8;
+      ctx.fillStyle=stuck?'rgba(120,0,0,0.85)':'rgba(0,0,0,0.7)';
+      ctx.fillRect(x-w,y,w,13);
+      ctx.fillStyle='#ffd700';
+      ctx.fillText(line,x-4,y+1);
+      y+=14;
+    });
+    ctx.restore();
   }
 }
 
@@ -3298,13 +3299,13 @@ function updateHUD(){
   const hpPct=Math.max(0,player.hp/player.maxHp*100);
   document.getElementById('health-bar').style.width=hpPct+'%';
   document.getElementById('health-bar').style.background=player.hp<=1?'linear-gradient(90deg,#f00,#f80)':player.hp<=Math.ceil(player.maxHp/3)?'linear-gradient(90deg,#f80,#ff0)':'linear-gradient(90deg,#0f0,#0ff)';
-  document.getElementById('stage-val').textContent='STAGE '+currentStage+' / 10';
+  document.getElementById('stage-val').textContent='שלב '+currentStage+' / 10';
   const stName=STAGES[currentStage-1]?STAGES[currentStage-1].name:'';
   if(stName){
     // Show stage name banner at the TOP of the screen so it doesn't block gameplay
     const nm=document.createElement('div');
     nm.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);border:1px solid rgba(0,255,255,0.4);color:#00ffff;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;padding:6px 18px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;text-align:center;text-shadow:0 0 6px #0ff;transition:opacity 0.4s;';
-    nm.innerHTML='STAGE '+currentStage+' &nbsp;·&nbsp; '+stName.toUpperCase();
+    nm.innerHTML='שלב '+currentStage+' &nbsp;·&nbsp; '+stName;
     document.body.appendChild(nm);
     setTimeout(function(){nm.style.opacity='0';},1200);
     setTimeout(function(){nm.remove();},1700);
@@ -3334,8 +3335,8 @@ function updateHUD(){
 // ══════════════════════════════════════════════
 function stageClear(){
   gameState='stageclear';
-  document.getElementById('se-title').textContent=currentStage===10?'MISSION COMPLETE! 🏆':`STAGE ${currentStage} CLEAR!`;
-  document.getElementById('se-sub').textContent=currentStage===10?'You saved the world!':BOSSES[currentStage-1].name+' destroyed!';
+  document.getElementById('se-title').textContent=currentStage===10?'המשימה הושלמה! 🏆':`שלב ${currentStage} הסתיים!`;
+  document.getElementById('se-sub').textContent=currentStage===10?'הצלת את העולם!':BOSSES[currentStage-1].name+' הושמד!';
   document.getElementById('se-coins').textContent=stageCoinsEarned;
   readyPlayers.clear();
   updateReadyList();
@@ -3356,7 +3357,7 @@ function gameOver(){
 function updateReadyList(){
   const el=document.getElementById('ready-list');
   if(!multiMode){el.textContent='';return;}
-  el.textContent=`Ready: ${readyPlayers.size} player(s)`;
+  el.textContent=`מוכנים: ${readyPlayers.size} שחקנים`;
 }
 
 // ══════════════════════════════════════════════
@@ -3383,7 +3384,7 @@ function buildShop(tab){
       <div class="item-desc">${item.desc||''}</div>
       ${shopTab==='planes'?`<canvas id="sr-${item.id}" width="92" height="74" style="display:block;width:92px;height:74px;margin:3px auto 0;background:transparent;"></canvas>`:''}
       ${shopTab==='planes'?`<div style="font-size:8px;color:#0ff8;margin-top:2px">❤️${item.hp} ⚡${Math.round(item.speedMult*100)}% 🔥${item.bulletDmg}× ⚙️${Math.round(60/item.fireRate*10)/10}/s</div>`:''}
-      <div class="item-price">${owned?'✅ OWNED':stageLocked?'🔒 BEAT STAGE '+item.unlockStage:item.price===0?'FREE':'🪙 '+item.price}</div>
+      <div class="item-price">${owned?'✅ ברשותך':stageLocked?'🔒 עבור שלב '+item.unlockStage:item.price===0?'חינם':'🪙 '+item.price}</div>
       ${isCheatLocked?'<div style="font-size:8px;color:#f44">LOCKED (cheat mode)</div>':''}
     </div>`;
   }).join('');
@@ -3415,10 +3416,10 @@ function buyItem(id,tab){
   // Stage-gated planes can't be purchased until stage is cleared
   const stageReached=currentUser.stage||1;
   if(item.unlockStage&&stageReached<=item.unlockStage){
-    alert('Locked! Beat Stage '+item.unlockStage+' first.');return;
+    alert('נעול! עבור קודם את שלב '+item.unlockStage+'.');return;
   }
-  if(currentUser.coins<item.price){alert('Not enough coins!');return;}
-  if(cheatOn&&(id==='sr72'||id==='omega')){alert('This item cannot be purchased in cheat mode!');return;}
+  if(currentUser.coins<item.price){alert('אין מספיק מטבעות!');return;}
+  if(cheatOn&&(id==='sr72'||id==='omega')){alert('פריט זה לא ניתן לרכישה במצב צ׳יט!');return;}
   currentUser.coins-=item.price;
   if(tab==='planes'){currentUser.ownedPlanes.push(id);currentUser.selectedPlane=id;}
   else {currentUser.ownedWeapons.push(id);currentUser.selectedWeapon=id;if(player)player.selected=id;}
@@ -3432,7 +3433,7 @@ function buyItem(id,tab){
 // ── PRE-STAGE SELECTION ──
 function showPreSelect(idx){
   currentStage=idx;
-  document.getElementById('ps-title').textContent='STAGE '+idx+' LOADOUT';
+  document.getElementById('ps-title').textContent='שלב '+idx+' - ציוד';
   document.getElementById('ps-coins').textContent=currentUser.coins;
   if(!currentUser.selectedWeapons||currentUser.selectedWeapons.length===0){
     currentUser.selectedWeapons=[currentUser.selectedWeapon||'bullet'];
@@ -3636,7 +3637,7 @@ function toggleLoadoutWeapon(id){
   if(idx>=0){
     if(currentUser.selectedWeapons.length>1)currentUser.selectedWeapons.splice(idx,1);
   } else {
-    if(currentUser.selectedWeapons.length>=7){alert('Max 7 weapons!');return;}
+    if(currentUser.selectedWeapons.length>=7){alert('מקסימום 7 נשקים!');return;}
     currentUser.selectedWeapons.push(id);
   }
   saveLocal();
@@ -3672,7 +3673,7 @@ function confirmLoadout(){
 function showLevelCard(idx){
   currentStage=idx;
   var sv=document.getElementById('stage-val');
-  if(sv) sv.textContent='STAGE '+idx+' / 10';
+  if(sv) sv.textContent='שלב '+idx+' / 10';
   showScreen(null);
   gameState='playing';
   initGame();
@@ -3706,7 +3707,7 @@ function submitCheatCode(){
     const btn=document.getElementById('shop-cheat-btn');
     if(btn){btn.textContent='✅ +99,999 coins!';setTimeout(()=>btn.textContent='🔒 CHEAT CODE',2500);}
   } else {
-    document.getElementById('cheat-err').textContent='Wrong code! Try again.';
+    document.getElementById('cheat-err').textContent='קוד שגוי! נסה שוב.';
     document.getElementById('cheat-input').value='';
   }
 }
@@ -3799,8 +3800,8 @@ function doLogin(){
   const name=document.getElementById('login-name').value.trim();
   const pass=document.getElementById('login-pass').value.trim();
   const err=document.getElementById('login-err');
-  if(!name||!pass){err.textContent='Enter name and code';return;}
-  if(pass.length!==3||isNaN(pass)){err.textContent='Code must be 3 digits';return;}
+  if(!name||!pass){err.textContent='הזן שם וקוד';return;}
+  if(pass.length!==3||isNaN(pass)){err.textContent='הקוד חייב להיות 3 ספרות';return;}
   const saved=loadLocal(name);
   if(!saved){
     // Show any pilots that exist on this device to help the user
@@ -3809,13 +3810,13 @@ function doLogin(){
       const lk=localStorage.key(i);
       if(lk&&lk.startsWith('f35_'))known.push(lk.slice(4));
     }
-    err.textContent=known.length?('Pilot not found. Saved on this device: '+known.slice(0,3).join(', ')):'No pilots saved on this device. Use NEW PILOT.';
+    err.textContent=known.length?('טייס לא נמצא. שמורים במכשיר: '+known.slice(0,3).join(', ')):'אין טייסים שמורים במכשיר. השתמש ב"טייס חדש".';
     return;
   }
-  if(saved.pass!==pass){err.textContent='Wrong code!';return;}
+  if(saved.pass!==pass){err.textContent='קוד שגוי!';return;}
   currentUser=saved;
   err.textContent='';
-  document.getElementById('welcome-msg').textContent='WELCOME BACK, '+(saved.name||name).toUpperCase()+'!';
+  document.getElementById('welcome-msg').textContent='ברוך שובך, '+(saved.name||name)+'!';
   document.getElementById('menu-coins').textContent=currentUser.coins;
   showScreen('menu-screen');
 }
@@ -3824,13 +3825,13 @@ function doNewAccount(){
   const name=document.getElementById('login-name').value.trim();
   const pass=document.getElementById('login-pass').value.trim();
   const err=document.getElementById('login-err');
-  if(!name||!pass){err.textContent='Enter name and code';return;}
-  if(pass.length!==3||isNaN(pass)){err.textContent='Code must be 3 digits';return;}
-  if(loadLocal(name)){err.textContent='Name already taken (names are case-insensitive)';return;}
+  if(!name||!pass){err.textContent='הזן שם וקוד';return;}
+  if(pass.length!==3||isNaN(pass)){err.textContent='הקוד חייב להיות 3 ספרות';return;}
+  if(loadLocal(name)){err.textContent='השם כבר תפוס (אותיות גדולות/קטנות נחשבות זהות)';return;}
   currentUser=defaultUser(name,pass);
   saveLocal();
   err.textContent='';
-  document.getElementById('welcome-msg').textContent='WELCOME, '+name.toUpperCase()+'!';
+  document.getElementById('welcome-msg').textContent='ברוך הבא, '+name+'!';
   document.getElementById('menu-coins').textContent=0;
   showScreen('menu-screen');
 }
@@ -3991,8 +3992,8 @@ function connectWS(onOpen){
   if(ws&&ws.readyState===1){onOpen();return;}
   try{
     ws=new WebSocket(SERVER_URL);
-    ws.onopen=()=>{setMultiErr('Connected ✅');onOpen();};
-    ws.onerror=()=>setMultiErr('Connection failed ❌');
+    ws.onopen=()=>{setMultiErr('מחובר ✅');onOpen();};
+    ws.onerror=()=>setMultiErr('החיבור נכשל ❌');
     ws.onclose=()=>{};
     ws.onmessage=(e)=>{
       let msg;try{msg=JSON.parse(e.data);}catch{return;}
@@ -4015,9 +4016,9 @@ function connectWS(onOpen){
           myName=currentUser.name;
           enterMpSession();
           ws.send(JSON.stringify({type:'event',event:'identify',data:{color:myColor,name:myName}}));
-          setMultiErr('Joined! Wait for host...');break;
+          setMultiErr('הצטרפת! חכה למארח...');break;
         case 'players': {
-          document.getElementById('room-players').textContent=msg.players.length+' player(s) in room';
+          document.getElementById('room-players').textContent=msg.players.length+' שחקנים בחדר';
           // Update existing remotePlayers in place so we don't lose color/name data
           // already received via identify events. Also fall back to the deterministic
           // playerId→color mapping for anyone who hasn't identified yet.
@@ -4074,9 +4075,9 @@ function connectWS(onOpen){
               gameState='stageclear';
               const stage=msg.data?.stage||currentStage;
               currentStage=stage;
-              document.getElementById('se-title').textContent=stage===10?'MISSION COMPLETE! 🏆':'STAGE '+stage+' CLEAR!';
+              document.getElementById('se-title').textContent=stage===10?'המשימה הושלמה! 🏆':'שלב '+stage+' הסתיים!';
               const bossName=(BOSSES[stage-1]||{}).name||'';
-              document.getElementById('se-sub').textContent=stage===10?'You saved the world!':bossName+' destroyed!';
+              document.getElementById('se-sub').textContent=stage===10?'הצלת את העולם!':bossName+' הושמד!';
               document.getElementById('se-coins').textContent=msg.data?.coins||stageCoinsEarned||0;
               readyPlayers.clear();updateReadyList();
               showScreen('stage-end-screen');
@@ -4102,7 +4103,7 @@ function connectWS(onOpen){
               // Banner
               const m=document.createElement('div');
               m.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(244,114,182,0.2);border:2px solid #f472b6;color:#f472b6;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:10px 22px;border-radius:6px;letter-spacing:2px;z-index:99;pointer-events:none;';
-              m.innerHTML='💖 REVIVED!';
+              m.innerHTML='💖 קמת לתחייה!';
               document.body.appendChild(m);setTimeout(()=>m.remove(),1500);
             } else if(remotePlayers[targetId]){
               // Some other player revived — update their visual state
@@ -4114,7 +4115,7 @@ function connectWS(onOpen){
           break;
       }
     };
-  }catch(e){setMultiErr('Error: '+e.message);}
+  }catch(e){setMultiErr('שגיאה: '+e.message);}
 }
 
 function doCreateRoom(){
@@ -4125,11 +4126,11 @@ function doJoinRoom(){
   const inp=document.getElementById('room-input');
   if(inp)inp.blur();
   const code=(inp?.value||'').trim();
-  if(code.length!==4){setMultiErr('Enter 4-digit code');return;}
+  if(code.length!==4){setMultiErr('הזן קוד בן 4 ספרות');return;}
   connectWS(()=>ws.send(JSON.stringify({type:'join',code,color:MP_COLORS[1],name:currentUser.name})));
 }
 function doStartOnline(){
-  if(!ws||ws.readyState!==1){setMultiErr('Not connected');return;}
+  if(!ws||ws.readyState!==1){setMultiErr('לא מחובר');return;}
   ws.send(JSON.stringify({type:'start'}));
 }
 function doReadyUp(){
@@ -4145,7 +4146,7 @@ function doReadyUp(){
 function startNextStage(){
   if(currentStage>=10){
     // Game won!
-    document.getElementById('go-title').textContent='🏆 MISSION COMPLETE!';
+    document.getElementById('go-title').textContent='🏆 המשימה הושלמה!';
     const rg=document.getElementById('go-results');
     rg.innerHTML=`<div class="result-row"><span class="result-name">🏆 ${currentUser.name}</span><span class="result-score">${currentUser.coins} 🪙</span></div>`;
     currentUser.stage=1;saveLocal();
@@ -4219,7 +4220,7 @@ document.addEventListener('keydown',e=>{
       saveLocal();
       const m=document.createElement('div');
       m.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,255,200,0.12);border:2px solid rgba(0,255,255,0.75);color:#00ffff;font-family:system-ui,sans-serif;font-size:13px;font-weight:700;padding:10px 22px;border-radius:4px;letter-spacing:3px;z-index:99;pointer-events:none;text-align:center;line-height:1.6;';
-      m.innerHTML='🔓 CHEAT ON<br>F-35 Lightning + Dark Matter<br>All weapons unlocked!';
+      m.innerHTML='🔓 צ׳יט מופעל<br>F-35 Lightning + Dark Matter<br>כל הנשקים נפתחו!';
       document.body.appendChild(m);setTimeout(()=>m.remove(),3000);
       updateHUD();
     }
