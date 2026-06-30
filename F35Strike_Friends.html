@@ -367,8 +367,8 @@ let currentUser=null; // {name, pass, coins, ownedPlanes, ownedWeapons, selected
 // Lightweight counters to help debug when snapshots don't arrive (the most common
 // reason joiners "see no enemies"). Toggle showMpDebug() in the dev console to
 // flash the numbers on screen.
-let _mpStats={snapsSent:0,snapsRecv:0,lastSnapAt:0,evtsSent:0,evtsRecv:0};
-let _showMpDebug=false;
+let _mpStats={snapsSent:0,snapsRecv:0,lastSnapAt:0,evtsSent:0,evtsRecv:0,lastSnapEnemies:0,lastSnapBullets:0};
+let _showMpDebug=true; // auto-show in MP for now — set false in console to hide
 function showMpDebug(on){_showMpDebug=on!==false;}
 let ws=null, myPlayerId=null, myRoom=null, multiMode=false;
 let myColor='#00ffff';       // my plane outline color (set when room is created/joined)
@@ -2959,6 +2959,8 @@ function update(){
       }
     }));
     _mpStats.snapsSent++;
+    _mpStats.lastSnapEnemies=enemySnap.length;
+    _mpStats.lastSnapBullets=bulletSnap.length;
   }
 
   updateHUD();
@@ -3258,22 +3260,24 @@ function draw(){
   ctx.fillStyle='rgba(0,0,0,0.45)';ctx.font='bold 13px Orbitron,sans-serif';ctx.textAlign='left';
   ctx.fillText(currentUser?.name||'',10,H()-8);
   // ── MP debug overlay ──
-  // Only shows when explicitly enabled with showMpDebug(true) in the console.
-  // (Previous version auto-showed on enemies=0, but that triggers between waves
-  // even when sync is working — too noisy.)
+  // Auto-shows while in multiplayer so we can diagnose sync issues from a
+  // screenshot. Once MP is verified rock-solid, set _showMpDebug=false in
+  // the console to hide.
   if(multiMode && _showMpDebug){
     const since=_mpStats.lastSnapAt?Date.now()-_mpStats.lastSnapAt:Infinity;
-    const stuck = !isHost && since>3000; // real desync: no snaps for 3+ sec
+    const stuck = !isHost && since>3000;
     ctx.save();
     ctx.font='bold 10px monospace';
     ctx.textAlign='right';
     ctx.textBaseline='top';
     const lines=[
-      (isHost?'HOST':'JOIN')+' id='+myPlayerId,
-      'enemies='+enemies.length,
+      (isHost?'HOST':'JOIN')+' id='+myPlayerId+' multi='+(multiMode?1:0),
+      'enemies='+enemies.length+' bullets='+bullets.length,
+      'remotePlayers='+Object.keys(remotePlayers).length,
       'snapRX='+_mpStats.snapsRecv+' TX='+_mpStats.snapsSent,
-      'lastSnap='+(since===Infinity?'never':Math.round(since)+'ms ago'),
-      'ws='+(ws?ws.readyState:'null')+(stuck?' STUCK':'')
+      'lastSnap='+(since===Infinity?'never':Math.round(since)+'ms'),
+      'lastSnapEnemies='+(_mpStats.lastSnapEnemies||0)+' bullets='+(_mpStats.lastSnapBullets||0),
+      'ws='+(ws?ws.readyState:'null')+(stuck?' STUCK':' OK')
     ];
     const x=W()-8;
     let y=80;
@@ -4086,6 +4090,8 @@ function connectWS(onOpen){
           if(msg.event==='snap'&&!isHost){
             _mpStats.snapsRecv++;
             _mpStats.lastSnapAt=Date.now();
+            _mpStats.lastSnapEnemies=(msg.data?.enemies||[]).length;
+            _mpStats.lastSnapBullets=(msg.data?.ebullets||[]).length;
             applySnapshot(msg.data);
           }
           if(msg.event==='hit'&&isHost) applyJoinerHit(msg.playerId,msg.data);
